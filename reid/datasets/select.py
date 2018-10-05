@@ -10,9 +10,9 @@ from ..utils.serialization import write_json
 
 class Select(Dataset):
 
-    def __init__(self, root, from_dir1, from_dir2, to_dir, num_eval, make_test, split_id=0, num_val=100, download=True):
+    def __init__(self, root, from_dir1, from_dir2, to_dir, num_eval, make_test=None, split_id=0, num_val=100, download=True):
         super(Select, self).__init__(root, split_id=split_id)
-        self.n_pid = num_eval - 1
+        self.n_pid = num_eval
         self.from_dir1 = from_dir1
         self.from_dir2 = from_dir2
         self.to_dir = to_dir
@@ -41,10 +41,10 @@ class Select(Dataset):
         dir_images = osp.join(self.root, 'images')
         mkdir_if_missing(dir_images)
 
-        dir_gt = osp.join(self.root_orig, 'raw', self.from_dir1)
-        img_gt = sorted(glob(dir_gt + '/*'))
-        dir_patch = osp.join(self.root_orig, 'raw', self.from_dir2)
-        img_patch = sorted(glob(dir_patch + '/*'))
+        dir1 = osp.join(self.root_orig, 'raw', self.from_dir1)
+        img1 = sorted(glob(dir1 + '/*'))
+        dir2 = osp.join(self.root_orig, 'raw', self.from_dir2)
+        img2 = sorted(glob(dir2 + '/*'))
 
         def id(img, full=False):
             id_ = img.split('/')[-1].split('.')[0]
@@ -52,35 +52,33 @@ class Select(Dataset):
                 id_ = id_.split('_')[0]
             return id_
 
-        same_dir = self.from_dir1 == self.from_dir2
-        if same_dir:
-            ids = [id(i) for i in img_gt]
-            [[img_gt[i] for i in range(len(ids)) if ids[i] == l] for l in set(ids)]
+        def cluster_by_id(img_list):
+            ids = [id(i) for i in img_list]
+            return [[img_list[i] for i in range(len(ids)) if ids[i] == l] for l in set(ids)]
 
-            # todo continue implementing
+        img1 = cluster_by_id(img1)
+        img2 = cluster_by_id(img2)
+        assert len(img1) == len(img2)
 
-            all_imgs = zip(first_ids, other_ids)
-        else:
-            all_imgs = zip(img_gt, img_patch)
-
+        all_imgs = zip(img1, img2)
 
         identities = []
         for pid, (gt, pa) in enumerate(all_imgs):
-            if not same_dir:
-                pa = [pa]
+
             images = []
-            fname = '{:08d}_{:02d}_{:04d}.jpg'.format(pid, 0, 0)
-            imsave(osp.join(dir_images, fname), imread(gt))
-            images.append([fname])
-            for i, p in enumerate(pa):
-                fname = '{:08d}_{:02d}_{:04d}.jpg'.format(pid, 1, i)
+            for i, g in enumerate(gt):
+                fname = '{:08d}_{:02d}_{:04d}.jpg'.format(pid, i, 0)
+                imsave(osp.join(dir_images, fname), imread(g))
+                images.append([fname])
+            for j, p in enumerate(pa):
+                fname = '{:08d}_{:02d}_{:04d}.jpg'.format(pid, i+j+1, 1)
                 imsave(osp.join(dir_images, fname), imread(p))
                 images.append([fname])
 
             identities.append(images)
             if pid % 100 == 0:
-                print('ID {}/{}'.format(pid, len(img_gt)))
-            if pid == self.n_pid:
+                print('ID {}/{}'.format(pid, len(img1)))
+            if pid == self.n_pid-1:
                 break
 
         # Save meta information into a json file
@@ -91,14 +89,17 @@ class Select(Dataset):
         num = len(identities)
         splits = []
         for _ in range(10):
-
             pids = np.random.permutation(num).tolist()
-            if self.build_test:
+            if self.build_test is None:
+                trainval_pids = sorted(pids[:num // 2])
+                test_pids = sorted(pids[num // 2:])
+            elif self.build_test:
                 trainval_pids = []
                 test_pids = sorted(pids)
             else:
-                trainval_pids = sorted(pids[:num // 2])
-                test_pids = sorted(pids[num // 2:])
+                trainval_pids = sorted(pids)
+                test_pids = []
+
             split = {'trainval': trainval_pids, 'query': test_pids, 'gallery': test_pids}
             splits.append(split)
         write_json(splits, osp.join(self.root, 'splits.json'))

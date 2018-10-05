@@ -35,8 +35,11 @@ def get_data(name, split_id, data_dir, height, width, batch_size, num_instances,
         if test == 'test':
             build_test = True
             test = '_test'
-        else:
+        elif test == 'train':
             build_test = False
+            test = 'train'
+        else:
+            build_test = None
             test = ''
 
         to_dir = '{}{}{}{}'.format(from_dir1, from_dir2, num_eval, test)

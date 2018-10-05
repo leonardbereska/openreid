@@ -24,8 +24,8 @@ def get_test_features():
 
     imgs_orig = [cv2.cvtColor(i, cv2.COLOR_RGB2BGR) for i in imgs_orig]
 
-    im = imgs[0]
-    im_small = cv2.resize(im, (16, 16), interpolation=cv2.INTER_AREA)
+    # im = imgs[0]
+    # im_small = cv2.resize(im, (16, 16), interpolation=cv2.INTER_AREA)
     imgs = [cv2.resize(i, (32, 32), interpolation=cv2.INTER_AREA) for i in imgs_orig]
     imgs = [cv2.cvtColor(i, cv2.COLOR_BGR2GRAY) for i in imgs]
     imgs = [np.resize(i, (32 * 32)) for i in imgs]
