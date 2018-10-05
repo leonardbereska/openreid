@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import
 
-# import sys
-# sys.path.append(".")
+import sys
+sys.path.append(".")
 import argparse
 import os.path as osp
 
