@@ -98,10 +98,12 @@ def get_data(name, split_id, data_dir, height, width, batch_size, num_instances,
 
 
 def main(args):
-    device = torch.device('cuda:{}'.format(args.gpu) if cudnn.is_available() else 'cpu')
+    device = torch.device('cuda:{}'.format(args.gpu) if torch.cuda.is_available() else 'cpu')
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     cudnn.benchmark = True
+    if torch.cuda.is_available():
+        torch.cuda.set_device(args.gpu)
 
     # Redirect print to both console and log file
     if not args.evaluate:
