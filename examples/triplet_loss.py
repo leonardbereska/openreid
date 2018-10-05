@@ -1,15 +1,14 @@
 from __future__ import print_function, absolute_import
 
-import sys
-
-sys.path.append(".")
+# import sys
+# sys.path.append(".")
 import argparse
 import os.path as osp
 
 import numpy as np
 import sys
 import torch
-from torch import nn
+import torch.nn as nn
 from torch.backends import cudnn
 from torch.utils.data import DataLoader
 
@@ -19,7 +18,7 @@ from reid.dist_metric import DistanceMetric
 from reid.loss import TripletLoss
 from reid.trainers import Trainer
 from reid.evaluators import Evaluator
-from reid.visualizers import Visualizer
+from reid.tsne import Visualize
 from reid.utils.data import transforms as T
 from reid.utils.data.preprocessor import Preprocessor
 from reid.utils.data.sampler import RandomIdentitySampler
@@ -96,10 +95,10 @@ def get_data(name, split_id, data_dir, height, width, batch_size, num_instances,
 
 
 def main(args):
+    device = torch.device('cuda:{}'.format(args.gpu) if cudnn.is_available() else 'cpu')
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     cudnn.benchmark = True
-    torch.cuda.set_device(args.gpu)
 
     # Redirect print to both console and log file
     if not args.evaluate:
@@ -128,14 +127,13 @@ def main(args):
     if args.resume:
         home_path = '/export/home/lbereska/proj/open-reid'
         load_path = osp.join(home_path, 'logs/triplet', args.resume, 'model_best.pth.tar')
-        # torch.cuda.current_device()
         checkpoint = load_checkpoint(load_path)
         model.load_state_dict(checkpoint['state_dict'])
         start_epoch = checkpoint['epoch']
         best_top1 = checkpoint['best_top1']
         print("=> Start epoch {}  best top1 {:.1%}"
               .format(start_epoch, best_top1))
-    model = nn.DataParallel(model, device_ids=[args.gpu]).cuda()
+    model = nn.DataParallel(model, device_ids=[args.gpu]).to(device)
 
     # Distance metric
     metric = DistanceMetric(algorithm=args.dist_metric)
@@ -150,19 +148,17 @@ def main(args):
         evaluator.evaluate(test_loader, dataset.query, dataset.gallery, metric)
         return
 
-    visualizer = Visualizer(model)
+    visualizer = Visualize(model)
     if args.tsne:
-        visualizer.tsne()
+        metric.train(model, train_loader)
+        visualizer.visualize(test_loader, dataset.query, dataset.gallery, metric)
+        return
 
-    # Criterion
-    criterion = TripletLoss(margin=args.margin).cuda()
+    criterion = TripletLoss(margin=args.margin).to(device)
 
-    # Optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr,
                                  weight_decay=args.weight_decay)
-
-    # Trainer
-    trainer = Trainer(model, criterion)
+    trainer = Trainer(model, criterion, device)
 
     # Schedule learning rate
     def adjust_lr(epoch):
@@ -255,7 +251,8 @@ if __name__ == '__main__':
 
     parser.add_argument('--gpu', type=int, default=2)
     parser.add_argument('--make', type=str, nargs='+', default=[])  # e.g. 'gt', 'patch' 100
-    parser.add_argument('--testset', action='store_true')  # e.g. 'gt', 'patch' 100
+    # parser.add_argument('--testset', action='store_true')  # e.g. 'gt', 'patch' 100
+    parser.add_argument('--tsne', action='store_true')  # e.g. 'gt', 'patch' 100
 
 
     main(parser.parse_args())

@@ -3,35 +3,32 @@ from matplotlib import pyplot as plt
 from os import path as osp
 from glob import glob
 import cv2
-
-path_to_root = '/Users/leonardbereska/myroot/'
-path = osp.join(path_to_root, 'df')
-imgs_df = glob(path+'/*')
-imgs = imgs_df[0:100]
-
-imgs_orig = [cv2.imread(i) for i in imgs]
-
-# im = imgs[0]
-# im_small = cv2.resize(im, (16, 16), interpolation=cv2.INTER_AREA)
-imgs = [cv2.resize(i, (32, 32), interpolation=cv2.INTER_AREA) for i in imgs_orig]
-imgs = [cv2.cvtColor(i, cv2.COLOR_BGR2GRAY) for i in imgs]
-imgs = [np.resize(i, (32*32)) for i in imgs]
-X = np.array(imgs)
-
-# from sklearn.decomposition import PCA
-#
-# pca = PCA(n_components=3)
-# pca_result = pca.fit_transform(X)
-# x = pca_result[:,0]
-# y = pca_result[:,1]
-
-
+from reid.evaluators import extract_features
 from sklearn.manifold import TSNE
-tsne = TSNE(n_components=2, verbose=1, perplexity=50, n_iter=5000)
-tsne_results = tsne.fit_transform(X)
 
-x = tsne_results[:,0]
-y = tsne_results[:,1]
+
+def label_to_img(labels):
+    imgs = labels  # todo implement
+    return imgs
+
+
+def get_test_features():
+    path_to_root = '/Users/leonardbereska/myroot/'
+    path = osp.join(path_to_root, 'df')
+    imgs_df = glob(path + '/*')
+    imgs = imgs_df[0:100]
+
+    imgs_orig = [cv2.imread(i) for i in imgs]
+
+    imgs_orig = [cv2.cvtColor(i, cv2.COLOR_RGB2BGR) for i in imgs_orig]
+
+    im = imgs[0]
+    im_small = cv2.resize(im, (16, 16), interpolation=cv2.INTER_AREA)
+    imgs = [cv2.resize(i, (32, 32), interpolation=cv2.INTER_AREA) for i in imgs_orig]
+    imgs = [cv2.cvtColor(i, cv2.COLOR_BGR2GRAY) for i in imgs]
+    imgs = [np.resize(i, (32 * 32)) for i in imgs]
+    X = np.array(imgs)
+    return X, imgs_orig
 
 
 def imscatter(x, y, imgs, ax=None, zoom=1):
@@ -48,10 +45,39 @@ def imscatter(x, y, imgs, ax=None, zoom=1):
     ax.autoscale()
     return artists
 
-imgs_orig = [cv2.cvtColor(i, cv2.COLOR_RGB2BGR) for i in imgs_orig]
 
-ax = plt.axes()
-imscatter(x, y, imgs_orig, ax, zoom=0.1)
-plt.xticks([])
-plt.yticks([])
-plt.show(block=True)
+def plot_tsne(features, images):
+
+    # features, images = get_test_features()
+
+    # from sklearn.decomposition import PCA
+    #
+    # pca = PCA(n_components=3)
+    # pca_result = pca.fit_transform(X)
+    # y = pca_result[:,1]
+    # x = pca_result[:,0]
+
+    tsne = TSNE(n_components=2, verbose=1, perplexity=50, n_iter=5000)
+    tsne_results = tsne.fit_transform(features)
+
+    x = tsne_results[:,0]
+    y = tsne_results[:,1]
+
+    ax = plt.axes()
+    imscatter(x, y, images, ax, zoom=0.1)
+    plt.xticks([])
+    plt.yticks([])
+    plt.show(block=True)
+
+
+class Visualize(object):
+    def __init__(self, model):
+        super(Visualize, self).__init__()
+        self.model = model
+
+    def visualize(self, data_loader, query, gallery, metric=None):
+        features, labels = extract_features(self.model, data_loader, print_freq=1000)
+        # distmat = pairwise_distance(features, query, gallery, metric=metric)
+        # return evaluate_all(distmat, query=query, gallery=gallery)
+        imgs = label_to_img(labels)
+        plot_tsne(features, imgs)

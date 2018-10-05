@@ -6,10 +6,6 @@ from .cuhk03 import CUHK03
 from .dukemtmc import DukeMTMC
 from .market1501 import Market1501
 from .viper import VIPeR
-from .deepfashion import DeepFashion
-from .testy import Testy
-from .gtpatch import GtPatch
-from .genpatch import GenPatch
 from .select import Select
 
 
@@ -19,10 +15,6 @@ __factory = {
     'cuhk03': CUHK03,
     'market1501': Market1501,
     'dukemtmc': DukeMTMC,
-    'deepfashion': DeepFashion,
-    'testy': Testy,
-    'gtpatch': GtPatch,
-    'genpatch': GenPatch,
     'select': Select,
 }
 

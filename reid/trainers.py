@@ -10,10 +10,11 @@ from .utils.meters import AverageMeter
 
 
 class BaseTrainer(object):
-    def __init__(self, model, criterion):
+    def __init__(self, model, criterion, device):
         super(BaseTrainer, self).__init__()
         self.model = model
         self.criterion = criterion
+        self.device = device
 
     def train(self, epoch, data_loader, optimizer, print_freq=1):
         self.model.train()
@@ -63,7 +64,7 @@ class Trainer(BaseTrainer):
     def _parse_data(self, inputs):
         imgs, _, pids, _ = inputs
         inputs = [Variable(imgs)]
-        targets = Variable(pids.cuda())
+        targets = Variable(pids.to(self.device))
         return inputs, targets
 
     def _forward(self, inputs, targets):

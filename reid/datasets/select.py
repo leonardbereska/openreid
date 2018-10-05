@@ -57,7 +57,7 @@ class Select(Dataset):
             ids = [id(i) for i in img_gt]
             [[img_gt[i] for i in range(len(ids)) if ids[i] == l] for l in set(ids)]
 
-            # todo continue
+            # todo continue implementing
 
             all_imgs = zip(first_ids, other_ids)
         else:
@@ -66,7 +66,7 @@ class Select(Dataset):
 
         identities = []
         for pid, (gt, pa) in enumerate(all_imgs):
-            if same_dir:
+            if not same_dir:
                 pa = [pa]
             images = []
             fname = '{:08d}_{:02d}_{:04d}.jpg'.format(pid, 0, 0)
