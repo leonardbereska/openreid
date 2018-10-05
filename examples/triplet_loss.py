@@ -130,6 +130,7 @@ def main(args):
     # Load from checkpoint
     start_epoch = best_top1 = 0
     if args.resume:
+        working_dir = osp.dirname(osp.abspath(__file__))
         load_path = osp.join(working_dir, 'logs/triplet', args.resume, 'model_best.pth.tar')
         checkpoint = load_checkpoint(load_path)
         model.load_state_dict(checkpoint['state_dict'])
