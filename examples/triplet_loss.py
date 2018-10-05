@@ -130,8 +130,7 @@ def main(args):
     # Load from checkpoint
     start_epoch = best_top1 = 0
     if args.resume:
-        home_path = '/export/home/lbereska/proj/open-reid'
-        load_path = osp.join(home_path, 'logs/triplet', args.resume, 'model_best.pth.tar')
+        load_path = osp.join(working_dir, 'logs/triplet', args.resume, 'model_best.pth.tar')
         checkpoint = load_checkpoint(load_path)
         model.load_state_dict(checkpoint['state_dict'])
         start_epoch = checkpoint['epoch']
