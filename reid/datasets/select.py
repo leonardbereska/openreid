@@ -56,6 +56,10 @@ class Select(Dataset):
             ids = [id(i) for i in img_list]
             return [[img_list[i] for i in range(len(ids)) if ids[i] == l] for l in set(ids)]
 
+        A = set([id(i) for i in img1])
+        B = set([id(i) for i in img2])
+        img2 = [i for i in img2 if id(i) in A]
+
         img1 = cluster_by_id(img1)
         img2 = cluster_by_id(img2)
         assert len(img1) == len(img2)
