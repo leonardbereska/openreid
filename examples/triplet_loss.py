@@ -20,10 +20,11 @@ from reid.trainers import Trainer
 from reid.evaluators import Evaluator
 from reid.tsne import Visualize
 from reid.utils.data import transforms as T
+from reid.utils.logging import Logger
 from reid.utils.data.preprocessor import Preprocessor
 from reid.utils.data.sampler import RandomIdentitySampler
-from reid.utils.logging import Logger
 from reid.utils.serialization import load_checkpoint, save_checkpoint
+
 
 
 def get_data(name, split_id, data_dir, height, width, batch_size, num_instances,
@@ -130,7 +131,8 @@ def main(args):
     # Load from checkpoint
     start_epoch = best_top1 = 0
     if args.resume:
-        working_dir = '/export/home/lbereska/proj/openreid/'
+        working_dir = '/export/home/lbereska/projects/reid/'
+        # working_dir = osp'.'
         load_path = osp.join(working_dir, 'logs/triplet', args.resume, 'model_best.pth.tar')
         checkpoint = load_checkpoint(load_path)
         model.load_state_dict(checkpoint['state_dict'])
