@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import
 import os.path as osp
-
+import random
 import numpy as np
 
 from ..utils.data import Dataset
@@ -10,7 +10,8 @@ from ..utils.serialization import write_json
 
 class Select(Dataset):
 
-    def __init__(self, root, from_dir1, from_dir2, to_dir, num_eval, make_test=None, split_id=0, num_val=100, download=True):
+    def __init__(self, root, from_dir1, from_dir2, to_dir, num_eval,
+                 make_test=None, single=True, split_id=0, num_val=100, download=True):
         super(Select, self).__init__(root, split_id=split_id)
         self.n_pid = num_eval
         self.from_dir1 = from_dir1
@@ -19,6 +20,7 @@ class Select(Dataset):
         self.root = osp.join(root, 'datasets', self.to_dir)
         self.root_orig = root
         self.build_test = make_test
+        self.only_one = single
         if download:
             self.download()
 
@@ -58,16 +60,29 @@ class Select(Dataset):
 
         A = set([id(i) for i in img1])
         B = set([id(i) for i in img2])
+        A = A.difference(A.difference(B))
+
+        img1 = [i for i in img1 if id(i) in A]
         img2 = [i for i in img2 if id(i) in A]
 
         img1 = cluster_by_id(img1)
         img2 = cluster_by_id(img2)
+        print('length img1: {}'.format(len(img1)))
+        print('length img2: {}'.format(len(img2)))
         assert len(img1) == len(img2)
-
+        if self.from_dir1 == self.from_dir2:
+            print('{}=={}'.format(self.from_dir1, self.from_dir2))
+            self.only_one = False
+            img2 = [[] for i in img2]
+            print('both directories are identical,-> using ReID only within directory')
+ 
         all_imgs = zip(img1, img2)
-
+                  
         identities = []
         for pid, (gt, pa) in enumerate(all_imgs):
+            if self.only_one:
+                gt = [random.choice(gt)]
+                pa = [random.choice(pa)]
 
             images = []
             for i, g in enumerate(gt):

@@ -31,7 +31,7 @@ def get_data(name, split_id, data_dir, height, width, batch_size, num_instances,
              workers, combine_trainval, make_data):
     root = osp.join(data_dir, name)
     if make_data:
-        from_dir1, from_dir2, num_eval, test = make_data
+        from_dir1, from_dir2, num_eval, test, single = make_data
 
         if test == 'test':
             build_test = True
@@ -43,10 +43,21 @@ def get_data(name, split_id, data_dir, height, width, batch_size, num_instances,
             build_test = None
             test = ''
 
-        to_dir = '{}{}{}{}'.format(from_dir1, from_dir2, num_eval, test)
+        to_dir = '{}{}{}{}{}'.format(from_dir1, from_dir2, num_eval, test,
+                                     single)
+        if single == 'single':
+            single = True
+        elif single == 'many':
+            single = False
+        else:
+            print('must be either single or many')
+
         root = osp.join(data_dir, 'select')
 
-        dataset = datasets.create(name, root, from_dir1=from_dir1, from_dir2=from_dir2, to_dir=to_dir, num_eval=int(num_eval), make_test=build_test, split_id=split_id)
+        dataset = datasets.create(name, root, from_dir1=from_dir1,
+                                  from_dir2=from_dir2, to_dir=to_dir,
+                                  num_eval=int(num_eval), make_test=build_test,
+                                  single=single, split_id=split_id)
     else:
         dataset = datasets.create(name, root, split_id=split_id)
 
@@ -155,6 +166,7 @@ def main(args):
         evaluator.evaluate(test_loader, dataset.query, dataset.gallery, metric)
         return
 
+    # Visualizer
     visualizer = Visualize(model)
     if args.tsne:
         metric.train(model, train_loader)
@@ -257,7 +269,7 @@ if __name__ == '__main__':
                         default=osp.join(working_dir, 'logs'))
 
     parser.add_argument('--gpu', type=int, default=2)
-    parser.add_argument('--make', type=str, nargs='+', default=[])  # e.g. 'gt', 'patch' 100
+    parser.add_argument('--make', type=str, nargs='+', default=[], help="e.g. gt z_3 1400 test single")  # e.g. 'gt', 'patch' 100
     # parser.add_argument('--testset', action='store_true')  # e.g. 'gt', 'patch' 100
     parser.add_argument('--tsne', action='store_true')  # e.g. 'gt', 'patch' 100
 

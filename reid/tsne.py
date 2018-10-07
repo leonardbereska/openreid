@@ -21,11 +21,8 @@ def get_test_features():
     imgs = imgs_df[0:100]
 
     imgs_orig = [cv2.imread(i) for i in imgs]
-
     imgs_orig = [cv2.cvtColor(i, cv2.COLOR_RGB2BGR) for i in imgs_orig]
 
-    # im = imgs[0]
-    # im_small = cv2.resize(im, (16, 16), interpolation=cv2.INTER_AREA)
     imgs = [cv2.resize(i, (32, 32), interpolation=cv2.INTER_AREA) for i in imgs_orig]
     imgs = [cv2.cvtColor(i, cv2.COLOR_BGR2GRAY) for i in imgs]
     imgs = [np.resize(i, (32 * 32)) for i in imgs]
@@ -48,7 +45,7 @@ def imscatter(x, y, imgs, ax=None, zoom=1):
     return artists
 
 
-def plot_tsne(features, images):
+def plot_tsne(features, images, perplexity=50):
 
     # features, images = get_test_features()
 
@@ -59,7 +56,7 @@ def plot_tsne(features, images):
     # y = pca_result[:,1]
     # x = pca_result[:,0]
 
-    tsne = TSNE(n_components=2, verbose=1, perplexity=50, n_iter=5000)
+    tsne = TSNE(n_components=2, verbose=1, perplexity=perplexity, n_iter=5000)
     tsne_results = tsne.fit_transform(features)
 
     x = tsne_results[:,0]
@@ -79,6 +76,8 @@ class Visualize(object):
 
     def visualize(self, data_loader, query, gallery, metric=None):
         features, labels = extract_features(self.model, data_loader, print_freq=1000)
+        print(features)
+        print(labels)
         # distmat = pairwise_distance(features, query, gallery, metric=metric)
         # return evaluate_all(distmat, query=query, gallery=gallery)
         imgs = label_to_img(labels)
