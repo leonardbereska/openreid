@@ -26,7 +26,6 @@ from reid.utils.data.sampler import RandomIdentitySampler
 from reid.utils.serialization import load_checkpoint, save_checkpoint
 
 
-
 def get_data(name, split_id, data_dir, height, width, batch_size, num_instances,
              workers, combine_trainval, make_data):
     root = osp.join(data_dir, name)
@@ -58,8 +57,10 @@ def get_data(name, split_id, data_dir, height, width, batch_size, num_instances,
                                   from_dir2=from_dir2, to_dir=to_dir,
                                   num_eval=int(num_eval), make_test=build_test,
                                   single=single, split_id=split_id)
+        data_path = osp.join(root, 'datasets', to_dir)
     else:
         dataset = datasets.create(name, root, split_id=split_id)
+        data_path = osp.join(root, 'datasets', name)
 
     normalizer = T.Normalize(mean=[0.485, 0.456, 0.406],
                              std=[0.229, 0.224, 0.225])
@@ -106,7 +107,7 @@ def get_data(name, split_id, data_dir, height, width, batch_size, num_instances,
         batch_size=batch_size, num_workers=workers,
         shuffle=False, pin_memory=True)
 
-    return dataset, num_classes, train_loader, val_loader, test_loader
+    return dataset, num_classes, train_loader, val_loader, test_loader, data_path
 
 
 def main(args):
@@ -128,7 +129,7 @@ def main(args):
     if args.height is None or args.width is None:
         args.height, args.width = (144, 56) if args.arch == 'inception' else \
                                   (256, 128)
-    dataset, num_classes, train_loader, val_loader, test_loader = \
+    dataset, num_classes, train_loader, val_loader, test_loader, data_path = \
         get_data(args.dataset, args.split, args.data_dir, args.height,
                  args.width, args.batch_size, args.num_instances, args.workers,
                  args.combine_trainval, args.make)
@@ -167,16 +168,15 @@ def main(args):
         return
 
     # Visualizer
-    visualizer = Visualize(model)
+    tsne = Visualize(model)
     if args.tsne:
-        metric.train(model, train_loader)
-        visualizer.visualize(test_loader, dataset.query, dataset.gallery, metric)
+        # metric.train(model, train_loader)
+        perplexity, n_points = args.tsne
+        tsne.visualize(test_loader, data_path, perplexity, n_points)
         return
 
     criterion = TripletLoss(margin=args.margin).to(device)
-
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr,
-                                 weight_decay=args.weight_decay)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     trainer = Trainer(model, criterion, device)
 
     # Schedule learning rate
@@ -271,7 +271,7 @@ if __name__ == '__main__':
     parser.add_argument('--gpu', type=int, default=2)
     parser.add_argument('--make', type=str, nargs='+', default=[], help="e.g. gt z_3 1400 test single")  # e.g. 'gt', 'patch' 100
     # parser.add_argument('--testset', action='store_true')  # e.g. 'gt', 'patch' 100
-    parser.add_argument('--tsne', action='store_true')  # e.g. 'gt', 'patch' 100
+    parser.add_argument('--tsne', type=int, nargs='+', default=[], help="e.g. gt z_3 1400 test single")  # e.g. 'gt', 'patch' 100
 
 
     main(parser.parse_args())

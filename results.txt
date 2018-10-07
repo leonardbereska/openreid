@@ -50,21 +50,6 @@ CMC Scores deepfashion
 
 
 Trained on Full train set
-tested on z_3 z_3 generations
-Test:
-Mean AP: 77.7%
-CMC Scores deepfashion
-  top-1          75.7%
-  top-5          93.6%
-  top-10         96.9%
-
-tested on gt pa (single)
-Test:
-Mean AP: 82.4%
-CMC Scores deepfashion
-  top-1          83.3%
-  top-5          94.7%
-  top-10         96.6%
 
 tested on gt z_3 (single)
 Mean AP: 17.2%
@@ -73,20 +58,38 @@ CMC Scores deepfashion
   top-5          48.8%
   top-10         60.4%
 
-tested on z_3 z_3 (single)
-Select dataset loaded
-  subset   | # ids | # images
-  ---------------------------
-  train    |     0 |        0
-  val      |     0 |        0
-  trainval |     0 |        0
-  query    |  1456 |     5824
-  gallery  |  1456 |     5824
-=> Loaded checkpoint '/export/home/lbereska/projects/reid/logs/triplet/train_full/model_best.pth.tar'
-=> Start epoch 109  best top1 99.8%
-Test:
+tested on z_3 z_3 (many)
 Mean AP: 92.1%
 CMC Scores deepfashion
   top-1          91.1%
   top-5          98.7%
   top-10         99.4%
+
+test on reid_12 reid_12 (many)
+Mean AP: 88.2%
+CMC Scores deepfashion
+  top-1          86.9%
+  top-5          97.5%
+  top-10         98.8%
+
+test on y_train y_train (single) (name:y_test)
+Mean AP: 89.2%
+CMC Scores deepfashion
+  top-1          87.8%
+  top-5          97.6%
+  top-10         99.0%
+
+test on df_test df_test (many)
+Mean AP: 96.3%
+CMC Scores deepfashion
+  top-1          95.8%
+  top-5          99.6%
+  top-10        100.0%
+
+test on gt - pa (single)
+Mean AP: 92.1%
+CMC Scores deepfashion
+  top-1          92.2%
+  top-5          97.3%
+  top-10         98.3%
+
