@@ -1,4 +1,6 @@
+########################
 Training with GT and Generations
+########################
 
 Evaluation:
 GT - Patch (single)
@@ -48,8 +50,10 @@ CMC Scores deepfashion
   top-5          78.2%
   top-10         85.9%
 
-
+########################
 Trained on Full train set
+########################
+
 
 tested on gt z_3 (single)
 Mean AP: 17.2%

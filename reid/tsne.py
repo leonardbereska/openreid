@@ -113,6 +113,10 @@ class Visualize(object):
         img_paths = list(extracted.keys())
 
         imgs = read_imgs(img_paths, data_path)
-        plot_tsne(features, imgs, labels, perplexity=n_neighbors, n_points=n_points)
+        perplexities = [5, 10, 20]
+        n_points = [10, 50, 100, 500, 1000]
+        for p in perplexities:
+            for n in n_points:
+                plot_tsne(features, imgs, labels, perplexity=p, n_points=n)
 
 
